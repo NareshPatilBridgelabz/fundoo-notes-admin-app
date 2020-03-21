@@ -1,25 +1,24 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+import { Switch } from 'react-router-dom'
+import Registration from './components/registration'
+import Login from './components/login'
+import ForgotPassword from './components/forgotPassword'
+import FundooServices from './components/fundooSevices'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+        <Switch>
+          <Route path='/registration' component={Registration} />
+          <Route path='/login' component={Login} />
+          {/* <Route path='/dashboard' component={Dashboard} /> */}
+          <Route path='/forgotpassword' component={ForgotPassword} />
+          <Route path="/fundooServices" component={FundooServices} />
+        </Switch>
+      </Router>
   );
 }
 
