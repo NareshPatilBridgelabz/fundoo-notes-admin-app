@@ -7,8 +7,13 @@ import Typography from '@material-ui/core/Typography'
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Alert from '@material-ui/lab/Alert'
+import EmailIcon from '@material-ui/icons/Email';
+import VpnKeyIcon from '@material-ui/icons/VpnKey';
 import TextField from '@material-ui/core/TextField'
 import {register} from '../services/userServices'
+import Grid from '@material-ui/core/Grid'
+import AccountCircle from '@material-ui/icons/AccountCircle';
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const useStyles = makeStyles(theme => ({
   // root: {   flexGrow: 1 }, paper: {   padding: theme.spacing(2),   textAling:
@@ -23,12 +28,30 @@ class Registration extends Component {
       Firstname: '',
       Lastname: '',
       Email: '',
-      Phone: '',
       Password: '',
       Passwordagain: '',
       snackbarOpen: false,
       snackbarMessage: '',
-      alertMsgType: 'error'
+      alertMsgType: 'error',
+      service:'',
+      advanceService: 'ADD TO CART',
+      basicService: 'ADD TO CART',
+      advanceBGcolor: "gray",
+      basicBGcolor: "gray"
+    }
+    if (this.props.location.data) {
+      console.log(this.props.location.data)
+      if (this.props.location.data.service === "advance") {
+        this.state.advanceService = "Selected"
+        this.state.advanceBGcolor = "yellowgreen"
+        this.state.basicBGcolor = "gray"
+        this.state.service = "advance"
+      } else if (this.props.location.data.service === "basic") {
+        this.state.basicService = "Selected"
+        this.state.basicBGcolor = "yellowgreen"
+        this.state.advanceBGcolor = "gray"
+        this.state.service = "basic"
+      }
     }
   }
 
@@ -54,25 +77,30 @@ class Registration extends Component {
     } else if (this.state.Passwordagain === '') {
       this.setState({snackbarOpen: true, snackbarMessage: 'Enter same password'})
       console.log('requires same password')
+    } else if (this.state.service === '') {
+      this.setState({snackbarOpen: true, snackbarMessage: 'Service not selected'})
     } else {
       let sendData = {
         firstName: this.state.Firstname,
         lastName: this.state.Lastname,
         email: this.state.Email,
-        service: 'advance',
-        password: this.state.Password,
-        phoneNumber: this.state.Phone
+        service: this.state.service,
+        password: this.state.Password
       }
 
       console.log(JSON.stringify(sendData));
       register(sendData).then(response => {
-        this.state.alertMsgType = 'success'
-        this.setState({snackbarOpen: true, snackbarMessage: "Succefully Registered."})
-        setTimeout(() => {
-          this.loginPage();
-        }, 2000)
-        console.log('RESPONSE :', response);
-      }).catch()
+        if(response.data){
+          this.state.alertMsgType = 'success'
+          this.setState({snackbarOpen: true, snackbarMessage: "Succefully Registered."})
+          setTimeout(() => {
+            this.props.history.push('/login')
+          }, 2000)
+        } else {
+          this.state.alertMsgType = 'error'
+          this.setState({snackbarOpen: true, snackbarMessage: "Something went wrong"})
+        }
+      }).catch()   
     }
   }
 
@@ -99,7 +127,7 @@ class Registration extends Component {
     }
   }
 
-  onchangeEmail = event => {
+  onchangeEmail = event => {   
     this.setState({Email: event.target.value})
   }
 
@@ -152,7 +180,9 @@ class Registration extends Component {
     this
       .props
       .history
-      .push('/login')
+      .push({pathname:'./login',data:{
+        service:this.state.service
+      }})
   }
   render() {
     const classes = {
@@ -162,52 +192,188 @@ class Registration extends Component {
     return (
       <div className="reg_main">
 
-        <Card className='reg_card'>
+        <Card
+          className='reg_card'
+          style={{
+          boxShadow: "5px 10px 12px 1px",
+          backgroundColor: "#f8f6f6"
+        }}>
           <CardContent>
-            <Typography className="register_title"  variant="h5" color="textSecondary">
+            <Typography className="register_title" variant="h5" color="textSecondary">
               Create Your Fundoo Account
             </Typography>
             <Typography variant="body2" component="p">
               <form className={classes.root} noValidate autoComplete="off">
+                <Snackbar
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'center'
+                        }}
+                        open={this.state.snackbarOpen}
+                        autoHideDuration={3000}
+                        onClose={() => this.setState({snackbarOpen: false})}
+                        message={
+                          <span id='message-id'>
+                            {' '}
+                            {this.state.snackbarMessage}{' '}
+                          </span>
+                        }
+                      >
+                        <Alert
+                          onClose={this.handleCloseSnackbar}
+                          severity={this.state.alertMsgType}
+                        >
+                          {this.state.snackbarMessage}
+                        </Alert>
+                      </Snackbar>
+
                 <div className="form_row">
                   <TextField
-                    required
-                    id="standard-required"
+                    className={classes.margin}
+                    id="input-with-icon-textfield"
                     label="First Name"
-                    />
+                    variant="outlined"
+                    value={this.state.Firstname}
+                    onChange={this.onchangeFirstName}
+                    InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle/>
+                      </InputAdornment>
+                    )
+                  }}/>
                   <TextField
-                    id="standard-disabled"
+                    className={classes.margin}
+                    id="input-with-icon-textfield"
                     label="Last Name"
-                    />
-                </div>
-                <div className="form_row" style={{width: 'fit-content'}}>
-                <TextField
-                    fullWidth
-                    required
-                    id="standard-required"
-                    label="Email-ID"
-                    
-                    />
+                    variant="outlined"
+                    value={this.state.Lastname}
+                    onChange={this.onchangeLastName}
+                    InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccountCircle/>
+                      </InputAdornment>
+                    )
+                  }}/>
                 </div>
                 <div className="form_row">
                   <TextField
-                    required
-                    id="standard-required"
-                    type="password"
-                    label="Password"
-                    />
+                    fullWidth
+                    className={classes.margin}
+                    value={this.state.Email}
+                    onChange={this.onchangeEmail}
+                    id="input-with-icon-textfield"
+                    variant="outlined"
+                    label="Email"
+                    style={{
+                    maxWidth: "572px"
+                  }}
+                    InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailIcon/>
+                      </InputAdornment>
+                    )
+                  }}/>
+                </div>
+                <div className="form_row">
                   <TextField
-                    id="standard-disabled"
-                    type="password"
+                    className={classes.margin}
+                    id="input-with-icon-textfield"
+                    variant="outlined"
+                    label="Password"
+                    value={this.state.Password}
+                    onChange={this.onchangePassword}
+                    InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VpnKeyIcon/>
+                      </InputAdornment>
+                    )
+                  }}/>
+                  <TextField
+                    className={classes.margin}
+                    id="input-with-icon-textfield"
+                    variant="outlined"
                     label="Comfirm-Password"
-                    />
+                    value={this.state.Passwordagain}
+                    onChange={this.onchangePasswordagain}
+                    InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <VpnKeyIcon/>
+                      </InputAdornment>
+                    )
+                  }}/>
                 </div>
               </form>
             </Typography>
           </CardContent>
+
+          <div>
+
+            <Grid container xs={12}>
+
+              <Grid item xs>
+                <div className='cardbox'>
+                  <div className='small_services_card front_card '>
+                    <Typography >price: $99 per month</Typography>
+                    <Typography style={{
+                      color: "blue"
+                    }}>advance</Typography>
+                    <ul className='servicecard_ul'>
+                      <li>$99/month</li>
+                      <li>
+                        Ability to add title, description, images, labels, checklist and colors
+                      </li>
+                    </ul>
+                  </div>
+                  <div
+                    className='small_services_card back_card'
+                    style={{
+                    backgroundColor: this.state.advanceBGcolor
+                  }}>{this.state.advanceService}</div>
+                </div>
+              </Grid>
+              <Grid item xs>
+                <div className='cardbox'>
+                  <div className='small_services_card front_card'>
+                    <Typography >price: $49 per month</Typography>
+                    <Typography style={{
+                      color: "blue"
+                    }}>basic</Typography>
+                    <ul className='servicecard_ul'>
+                      <li>$49/month</li>
+                      <li>Ability to add only title and description</li>
+                    </ul>
+                  </div>
+                  <div
+                    className='small_services_card back_card'
+                    style={{
+                    backgroundColor: this.state.basicBGcolor
+                  }}>{this.state.basicService}</div>
+                </div>
+              </Grid>
+
+            </Grid>
+            
+          </div>
+          
+          <div className="login-btn">
+          <div className="links_left">
+          <a onClick={this.loginPage}>click instead
+              </a>
+            </div>
+          <div className="button_right">
           <CardActions>
-            <Button className="register-btn" variant="contained" color="primary" href="#contained-buttons" >Submit</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={this.onSubmit}>Submit</Button>
           </CardActions>
+          </div>
+          </div> 
         </Card>
       </div>
     )
