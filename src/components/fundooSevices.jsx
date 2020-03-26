@@ -4,6 +4,24 @@ import { Row, Col } from 'react-grid-system'
 import Typography from '@material-ui/core/Typography'
 
 class FundooService extends Component {
+
+  constructor(props){
+    super(props)
+    this.state={
+      serviceName:''
+    }
+  }
+
+  loginHandler = ()=>{
+    this.props.history.push('./login')
+  }
+
+  registerHandler = (event)=>{
+    let service=event.currentTarget.getAttribute('service');
+    this.props.history.push({pathname :'./registration',data:{
+      service:service
+    }})
+  }
   render () {
     return (
       <div>
@@ -15,7 +33,7 @@ class FundooService extends Component {
         <Grid container xs={12}>
           <Grid item xs></Grid>
           <Grid item xs>
-            <div className='cardbox' id="card1">
+            <div className='cardbox' id="card1" service="advance" onClick={this.registerHandler}>
               <div className='services_card front_card '>
                 <Typography variant='h4'>price: $99 per month</Typography>
                 <Typography style={{color:"blue"}}>advance</Typography>
@@ -31,7 +49,7 @@ class FundooService extends Component {
             </div>
           </Grid>
           <Grid item xs>
-            <div className='cardbox' id="card2">
+            <div className='cardbox' id="card2" service="basic" onClick={this.registerHandler}>
               <div className='services_card front_card'>
                 <Typography variant='h4'>price: $49 per month</Typography>
                 <Typography style={{color:"blue"}}>basic</Typography>
@@ -46,7 +64,7 @@ class FundooService extends Component {
           <Grid item xs></Grid>
         </Grid>
         <div className="header_footer">
-            <a href="" >click instead </a>
+            <a href="login" >click instead </a>
         </div>
       </div>
     )
