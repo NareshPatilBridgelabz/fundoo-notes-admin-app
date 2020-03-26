@@ -8,7 +8,11 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Alert from '@material-ui/lab/Alert'
 import TextField from '@material-ui/core/TextField'
-import {register} from '../services/userServices'
+import { login } from '../services/userServices'
+import EmailIcon from '@material-ui/icons/Email';
+import VpnKeyIcon from '@material-ui/icons/VpnKey';
+import Grid from '@material-ui/core/Grid'
+import InputAdornment from '@material-ui/core/InputAdornment';
 
 const useStyles = makeStyles(theme => ({
   // root: {   flexGrow: 1 }, paper: {   padding: theme.spacing(2),   textAling:
@@ -20,15 +24,29 @@ class Registration extends Component {
     super(props)
 
     this.state = {
-      Firstname: '',
-      Lastname: '',
       Email: '',
-      Phone: '',
       Password: '',
-      Passwordagain: '',
       snackbarOpen: false,
       snackbarMessage: '',
-      alertMsgType: 'error'
+      alertMsgType: 'error',
+      serviceComponent: 'none',
+      advanceService: 'ADD TO CART',
+      basicService: 'ADD TO CART',
+      advanceBGcolor: "gray",
+      basicBGcolor: "gray"
+    }
+    if (this.props.location.data) {
+      this.state.serviceComponent=""
+      console.log(this.props.location.data)
+      if (this.props.location.data.service === "advance") {
+        this.state.advanceService = "Selected"
+        this.state.advanceBGcolor = "yellowgreen"
+        this.state.basicBGcolor = "gray"
+      } else if (this.props.location.data.service === "basic") {
+        this.state.basicService = "Selected"
+        this.state.basicBGcolor = "yellowgreen"
+        this.state.advanceBGcolor = "gray"
+      }
     }
   }
 
@@ -37,42 +55,42 @@ class Registration extends Component {
     // alert('Submitted')
     console.log(errors)
     console.log('PasswordAgain : ' + this.state.Email)
-    if (this.state.Firstname === '') {
-      console.log('firstname is empty')
-      this.setState({snackbarOpen: true, snackbarMessage: 'Enter first name'})
-    } else if (this.state.Lastname === '') {
-      this.setState({snackbarOpen: true, snackbarMessage: 'Enter last name'})
-      console.log('lastname is empty')
-    } else if (errors.email || this.state.Email === '') {
+    if (errors.email || this.state.Email === '') {
       this.setState({snackbarOpen: true, snackbarMessage: 'Enter propper email-ID.   '})
-    } else if (this.state.Country === '') {
-      this.setState({snackbarOpen: true, snackbarMessage: 'Enter country '})
-      console.log('lastname is empty')
     } else if (this.state.Password === '') {
       this.setState({snackbarOpen: true, snackbarMessage: 'Enter correct password'})
       console.log('password is empty')
-    } else if (this.state.Passwordagain === '') {
-      this.setState({snackbarOpen: true, snackbarMessage: 'Enter same password'})
-      console.log('requires same password')
     } else {
       let sendData = {
-        firstName: this.state.Firstname,
-        lastName: this.state.Lastname,
         email: this.state.Email,
-        service: 'advance',
-        password: this.state.Password,
-        phoneNumber: this.state.Phone
+        password: this.state.Password
       }
 
-      console.log(JSON.stringify(sendData));
-      register(sendData).then(response => {
-        this.state.alertMsgType = 'success'
-        this.setState({snackbarOpen: true, snackbarMessage: "Succefully Registered."})
-        setTimeout(() => {
-          this.loginPage();
-        }, 2000)
-        console.log('RESPONSE :', response);
-      }).catch()
+      console.log(JSON.stringify(sendData))
+      login(sendData)
+        .then(response => {
+          console.log('Responce : ')
+          console.log(response)
+          console.log(response.status)
+          if (response.status === 200) {
+            this.state.alertMsgType = 'success'
+            this.setState({
+              snackbarOpen: true,
+              snackbarMessage: 'Login Succesfully.'
+            })
+            localStorage.setItem('token', response.data.id)
+            setTimeout(() => {
+              this.props.history.push('/dashboard')
+            }, 2000)
+          } else {
+            this.state.alertMsgType = 'error'
+            this.setState({
+              snackbarOpen: true,
+              snackbarMessage: 'Enter correct credentials.'
+            })
+          }
+        })
+        .catch()
     }
   }
 
@@ -103,13 +121,6 @@ class Registration extends Component {
     this.setState({Email: event.target.value})
   }
 
-  onchangePhone = event => {
-    if (/^[0-9]*$/.test(event.target.value)) {
-      this.setState({Phone: event.target.value})
-    } else {
-      this.setState({snackbarOpen: true, snackbarMessage: 'Enter only numbers.   '})
-    }
-  }
 
   onchangePassword = event => {
     if (event.target.value.match('^[A-Za-z0-9]*$') != null) {
@@ -162,37 +173,142 @@ class Registration extends Component {
     return (
       <div className="login_main">
 
-        <Card className='login_card'>
+        <Card
+          className='login_card'
+          style={{
+          boxShadow: "5px 10px 12px 1px",
+          backgroundColor: "#f8f6f6"
+        }}>
           <CardContent>
-            <Typography className="register_title"  variant="h5" color="textSecondary">
+            <Typography className="register_title" variant="h5" color="textSecondary">
               Login On Fundoo Notes
             </Typography>
             <Typography variant="body2" component="p">
-              <form className={classes.root} noValidate autoComplete="off">
-                <div className="form_row" style={{width: 'fit-content'}}>
-                  <TextField
-                    required
-                    fullWidth
-                    id="standard-required"
-                    label="First Name"
-                    />
-                </div>
-                
-                <div className="form_row" style={{width: 'fit-content'}}>
-                  <TextField
-                    required
-                    fullWidth
-                    id="standard-required"
-                    type="password"
-                    label="Password"
-                    />
-                </div>
+              <form className={classes.root} noValidate autoComplete="off" id="login_form">
+              <Snackbar
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'center'
+                        }}
+                        open={this.state.snackbarOpen}
+                        autoHideDuration={3000}
+                        onClose={() => this.setState({snackbarOpen: false})}
+                        message={
+                          <span id='message-id'>
+                            {' '}
+                            {this.state.snackbarMessage}{' '}
+                          </span>
+                        }
+                      >
+                        <Alert
+                          onClose={this.handleCloseSnackbar}
+                          severity={this.state.alertMsgType}
+                        >
+                          {this.state.snackbarMessage}
+                        </Alert>
+                      </Snackbar>
+                <TextField
+                  fullWidth
+                  id="input-with-icon-textfield"
+                  label="Email"
+                  variant="outlined"
+                  value={this.state.Email}
+                  onChange={this.onchangeEmail}
+                  InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon/>
+                    </InputAdornment>
+                  )
+                }}/>
+                <TextField
+                  fullWidth
+                  id="input-with-icon-textfield"
+                  label="Password"
+                  variant="outlined"
+                  value={this.state.Password}
+                  onChange={this.onchangePassword}
+                  InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <VpnKeyIcon/>
+                    </InputAdornment>
+                  )
+                }}/>
               </form>
             </Typography>
           </CardContent>
+
+          <div >
+            <Grid container xs={12} 
+            style={{
+              display:this.state.serviceComponent
+            }}
+            >
+
+              <Grid item xs>
+                <div className='cardbox'>
+                  <div className='small_services_card front_card '>
+                    <Typography >price: $99 per month</Typography>
+                    <Typography style={{
+                      color: "blue"
+                    }}>advance</Typography>
+                    <ul className='servicecard_ul'>
+                      <li>$99/month</li>
+                      <li>
+                        Ability to add title, description, images, labels, checklist and colors
+                      </li>
+                    </ul>
+                  </div>
+                  <div
+                    className='small_services_card back_card'
+                    style={{
+                    backgroundColor: this.state.advanceBGcolor
+                  }}>{this.state.advanceService}</div>
+                </div>
+              </Grid>
+              <Grid item xs>
+                <div className='cardbox'>
+                  <div className='small_services_card front_card'>
+                    <Typography >price: $49 per month</Typography>
+                    <Typography style={{
+                      color: "blue"
+                    }}>basic</Typography>
+                    <ul className='servicecard_ul'>
+                      <li>$49/month</li>
+                      <li>Ability to add only title and description</li>
+                    </ul>
+                  </div>
+                  <div
+                    className='small_services_card back_card'
+                    style={{
+                    backgroundColor: this.state.basicBGcolor
+                  }}>{this.state.basicService}</div>
+                </div>
+              </Grid>
+
+            </Grid>
+            {/* <div className="header_footer">
+              <a href="login">click instead
+              </a>
+            </div> */}
+          </div>
+          <div className="login-btn">
+          <div className="links_left">
+              <a href="login">Forgot Password
+              </a><br />
+              <a href="login">Create Account
+              </a>
+            </div>
+          <div className="button_right">
           <CardActions>
-            <Button className="register-btn" variant="contained" color="primary" href="#contained-buttons" >Login</Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={this.onSubmit}>Login</Button>
           </CardActions>
+          </div>
+          </div>  
         </Card>
       </div>
     )
